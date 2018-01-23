@@ -1,0 +1,41 @@
+=======================================================================
+P2P_CLI on wlan0
+./wpa_supplicant -iwlan0 -Dnl80211 -c/data/lic/wpa_supplicant.conf.conf -B	
+./wpa_cli -iwlan0 -p /var/run/p2p_supplicant/
+p2p_connect 92:b6:86:ec:45:11 pbc go_intent=1
+busybox udhcpc -i wlan0
+busybox ifconfig wlan0 192.168.49.144
+=======================================================================
+=======================================================================
+P2P_GO on wlan0
+./wpa_supplicant -iwlan0 -Dnl80211 -c/data/lic/wpa_supplicant.conf.conf -B	
+./wpa_cli -iwlan0 -p /var/run/p2p_supplicant/
+p2p_connect 92:b6:86:ec:45:11 pbc go_intent=14
+busybox ifconfig wlan0 192.168.50.1
+busybox udhcpd /data/lic/wlan0_udhcpd.conf
+=======================================================================
+
+=======================================================================
+P2P_CLI on wlan1
+./wpa_supplicant -iwlan1 -Dnl80211 -c/data/lic/wpa_supplicant.conf.conf -B	
+./wpa_cli -iwlan1 -p /var/run/p2p_supplicant/
+p2p_connect 92:b6:86:ec:45:11 pbc go_intent=1
+busybox udhcpc -i wlan1
+busybox ifconfig wlan0 192.168.49.144
+=======================================================================
+=======================================================================
+P2P_GO on wlan1
+./wpa_supplicant -iwlan1 -Dnl80211 -c/data/lic/wpa_supplicant.conf.conf -B	
+./wpa_cli -iwlan1 -p /var/run/p2p_supplicant/
+p2p_connect 92:b6:86:ec:45:11 pbc go_intent=14
+busybox ifconfig wlan1 192.168.51.1 up
+busybox udhcpd /data/lic/wlan1_udhcpd.conf
+=======================================================================
+
+=======================================================================
+SoftAp
+busybox ifconfig wlan1 up
+busybox ifconfig wlan1 192.168.51.1 up
+busybox udhcpd /data/lic/wlan1_udhcpd.conf
+./hostapd hostapd.conf -B
+=======================================================================
