@@ -1,0 +1,275 @@
+diff --git a/CORE/HDD/inc/wlan_hdd_cfg80211.h b/CORE/HDD/inc/wlan_hdd_cfg80211.h
+index 7602f1d..2ebd7f5 100644
+--- a/CORE/HDD/inc/wlan_hdd_cfg80211.h
++++ b/CORE/HDD/inc/wlan_hdd_cfg80211.h
+@@ -985,6 +985,18 @@ struct cfg80211_bss* wlan_hdd_cfg80211_update_bss_list(
+ int wlan_hdd_cfg80211_suspend_wlan(struct wiphy *wiphy,
+                                    struct cfg80211_wowlan *wow);
+ 
++/*pset add patch*/
++void wlan_hdd_cfg80211_connect_result(struct net_device *dev, const u8 *bssid,
++                 const u8 *req_ie, size_t req_ie_len,
++                 const u8 *resp_ie, size_t resp_ie_len,
++                 u16 status, gfp_t gfp);
++
++void wlan_hdd_cfg80211_disconnected(struct net_device *dev, u16 reason,
++               u8 *ie, size_t ie_len, gfp_t gfp);
++
++#define CONN_SME_DEBUG
++/*pset add patch*/
++
+ #if !(defined (SUPPORT_WDEV_CFG80211_VENDOR_EVENT_ALLOC))
+ static inline struct sk_buff *
+ backported_cfg80211_vendor_event_alloc(struct wiphy *wiphy,
+diff --git a/CORE/HDD/inc/wlan_hdd_main.h b/CORE/HDD/inc/wlan_hdd_main.h
+index f01b7f3..2c518ab 100644
+--- a/CORE/HDD/inc/wlan_hdd_main.h
++++ b/CORE/HDD/inc/wlan_hdd_main.h
+@@ -879,6 +879,15 @@ typedef enum
+ 
+ #define WLAN_HDD_ADAPTER_MAGIC 0x574c414e //ASCII "WLAN"
+ 
++/* pset add patch */
++enum ConnSmeState {
++    CONN_SME_IDLE,
++    CONN_SME_CONNECTING,
++    CONN_SME_CONNECTED
++};
++/* pset add patch */
++
++
+ struct hdd_adapter_s
+ {
+    void *pHddCtx;
+@@ -1117,6 +1126,10 @@ struct hdd_adapter_s
+ 	/* MAC addresses used for OCB interfaces */
+ 	tSirMacAddr ocb_mac_address[VOS_MAX_CONCURRENCY_PERSONA];
+ 	int ocb_mac_addr_count;
++     /* pset add patch */
++    enum ConnSmeState connSmeState;
++    /* pset add patch */
++
+ };
+ 
+ #define WLAN_HDD_GET_STATION_CTX_PTR(pAdapter) (&(pAdapter)->sessionCtx.station)
+diff --git a/CORE/HDD/src/wlan_hdd_assoc.c b/CORE/HDD/src/wlan_hdd_assoc.c
+index bc3e150..9ca6c09 100644
+--- a/CORE/HDD/src/wlan_hdd_assoc.c
++++ b/CORE/HDD/src/wlan_hdd_assoc.c
+@@ -959,12 +959,12 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
+                 /* To avoid wpa_supplicant sending "HANGED" CMD to ICS UI */
+                 if( eCSR_ROAM_LOSTLINK == roamStatus )
+                 {
+-                    cfg80211_disconnected(dev, pRoamInfo->reasonCode, NULL, 0, GFP_KERNEL);
++                    wlan_hdd_cfg80211_disconnected(dev, pRoamInfo->reasonCode, NULL, 0, GFP_KERNEL);
+                 }
+                 else
+                 {
+-                    cfg80211_disconnected(dev, WLAN_REASON_UNSPECIFIED, NULL, 0, GFP_KERNEL);
+-                 }
++                    wlan_hdd_cfg80211_disconnected(dev, WLAN_REASON_UNSPECIFIED, NULL, 0, GFP_KERNEL);
++                }
+             }
+             //If the Device Mode is Station
+             // and the P2P Client is Connected
+@@ -1660,7 +1660,7 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
+                 {
+                     hddLog(LOG1, "%s ft_carrier_on is %d, sending connect "
+                                  "indication", __FUNCTION__, ft_carrier_on);
+-                    cfg80211_connect_result(dev, pRoamInfo->bssid,
++                    wlan_hdd_cfg80211_connect_result(dev, pRoamInfo->bssid,
+                                             pFTAssocReq, assocReqlen,
+                                             pFTAssocRsp, assocRsplen,
+                                             WLAN_STATUS_SUCCESS,
+@@ -1695,7 +1695,7 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
+                                roamResult, roamStatus);
+ 
+                         /* inform connect result to nl80211 */
+-                        cfg80211_connect_result(dev, pRoamInfo->bssid,
++                        wlan_hdd_cfg80211_connect_result(dev, pRoamInfo->bssid,
+                                 reqRsnIe, reqRsnLength,
+                                 rspRsnIe, rspRsnLength,
+                                 WLAN_STATUS_SUCCESS,
+@@ -1883,12 +1883,12 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
+             if ( eCSR_ROAM_RESULT_ASSOC_FAIL_CON_CHANNEL == roamResult )
+             {
+                if (pRoamInfo)
+-                   cfg80211_connect_result ( dev, pRoamInfo->bssid,
++                   wlan_hdd_cfg80211_connect_result ( dev, pRoamInfo->bssid,
+                         NULL, 0, NULL, 0,
+                         WLAN_STATUS_ASSOC_DENIED_UNSPEC,
+                         GFP_KERNEL );
+                else
+-                   cfg80211_connect_result ( dev, pWextState->req_bssId,
++                   wlan_hdd_cfg80211_connect_result ( dev, pWextState->req_bssId,
+                         NULL, 0, NULL, 0,
+                         WLAN_STATUS_ASSOC_DENIED_UNSPEC,
+                         GFP_KERNEL );
+@@ -1906,13 +1906,13 @@ static eHalStatus hdd_AssociationCompletionHandler( hdd_adapter_t *pAdapter, tCs
+                      * applications to reconnect the station with correct
+                      * configuration.
+                      */
+-                    cfg80211_connect_result ( dev, pRoamInfo->bssid,
++                    wlan_hdd_cfg80211_connect_result ( dev, pRoamInfo->bssid,
+                         NULL, 0, NULL, 0,
+                         isWep ? pRoamInfo->reasonCode :
+                             WLAN_STATUS_UNSPECIFIED_FAILURE,
+                         GFP_KERNEL );
+                 } else
+-                    cfg80211_connect_result ( dev, pWextState->req_bssId,
++                    wlan_hdd_cfg80211_connect_result ( dev, pWextState->req_bssId,
+                         NULL, 0, NULL, 0,
+                         WLAN_STATUS_UNSPECIFIED_FAILURE,
+                         GFP_KERNEL );
+diff --git a/CORE/HDD/src/wlan_hdd_cfg80211.c b/CORE/HDD/src/wlan_hdd_cfg80211.c
+index 81f5956..9d14698 100644
+--- a/CORE/HDD/src/wlan_hdd_cfg80211.c
++++ b/CORE/HDD/src/wlan_hdd_cfg80211.c
+@@ -4320,6 +4320,8 @@ int wlan_hdd_cfg80211_init(struct device *dev,
+ #endif
+ #endif
+ 
++#ifdef CONFIG_PM
++
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)) || defined(WITH_BACKPORTS)
+     wiphy->wowlan = &wowlan_support_cfg80211_init;
+ #else
+@@ -4328,6 +4330,8 @@ int wlan_hdd_cfg80211_init(struct device *dev,
+     wiphy->wowlan.pattern_min_len = 1;
+     wiphy->wowlan.pattern_max_len = WOWL_PTRN_MAX_SIZE;
+ #endif
++#endif /* CONFIG_PM pset add patch */
++
+ 
+ #if  defined (WLAN_FEATURE_VOWIFI_11R) || defined (FEATURE_WLAN_ESE) || defined(FEATURE_WLAN_LFR)
+     if (pCfg->isFastTransitionEnabled
+@@ -10794,6 +10798,8 @@ static int wlan_hdd_try_disconnect( hdd_adapter_t *pAdapter )
+         }
+     }
+ 
++    wlan_hdd_cfg80211_disconnected(dev, reason, NULL, 0, GFP_KERNEL);
++
+     return 0;
+ }
+ 
+@@ -10893,6 +10899,12 @@ static int __wlan_hdd_cfg80211_connect( struct wiphy *wiphy,
+                                                WLAN_HDD_INFRA_STATION);
+     }
+ 
++    pAdapter->connSmeState = CONN_SME_CONNECTING;
++#ifdef CONN_SME_DEBUG
++    printk( "%s:%d connSmeState <= CONN_SME_CONNECTING\n",
++            __func__, __LINE__ );
++#endif /* CONN_SME_DEBUG */
++
+     /*Try disconnecting if already in connected state*/
+     status = wlan_hdd_try_disconnect(pAdapter);
+     if ( 0 > status) {
+@@ -16150,6 +16162,54 @@ void wlan_hdd_cfg80211_extscan_callback(void *ctx, const tANI_U16 evType,
+ 
+ #endif /* FEATURE_WLAN_EXTSCAN */
+ 
++/* pset add patch */
++
++void wlan_hdd_cfg80211_connect_result(struct net_device *dev, const u8 *bssid,
++                 const u8 *req_ie, size_t req_ie_len,
++                 const u8 *resp_ie, size_t resp_ie_len,
++                 u16 status, gfp_t gfp)
++{
++    hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( dev );
++
++    if ( pAdapter->connSmeState != CONN_SME_CONNECTING ) {
++        return;
++    }
++
++    if ( status == WLAN_STATUS_SUCCESS ) {
++        pAdapter->connSmeState = CONN_SME_CONNECTED;
++#ifdef CONN_SME_DEBUG
++        printk( "%s:%d connSmeState <= CONN_SME_CONNECTED\n",
++            __func__, __LINE__ );
++#endif /* CONN_SME_DEBUG */
++    } else {
++        pAdapter->connSmeState = CONN_SME_IDLE;
++#ifdef CONN_SME_DEBUG
++        printk( "%s:%d connSmeState <= CONN_SME_IDLE\n",
++            __func__, __LINE__ );
++#endif /* CONN_SME_DEBUG */
++    }
++    cfg80211_connect_result( dev, bssid, req_ie, req_ie_len, resp_ie, resp_ie_len, status, gfp );
++
++}
++
++void wlan_hdd_cfg80211_disconnected(struct net_device *dev, u16 reason,
++               u8 *ie, size_t ie_len, gfp_t gfp)
++{
++    hdd_adapter_t *pAdapter = WLAN_HDD_GET_PRIV_PTR( dev );
++
++    if ( pAdapter->connSmeState == CONN_SME_CONNECTED )
++    {
++        pAdapter->connSmeState = CONN_SME_IDLE;
++#ifdef CONN_SME_DEBUG
++        printk( "%s:%d connSmeState <= CONN_SME_IDLE\n",
++            __func__, __LINE__ );
++#endif /* CONN_SME_DEBUG */
++        cfg80211_disconnected( dev, reason, ie, ie_len, gfp );
++    }
++}
++
++/* pset add patch */
++
+ /* cfg80211_ops */
+ static struct cfg80211_ops wlan_hdd_cfg80211_ops =
+ {
+diff --git a/CORE/HDD/src/wlan_hdd_main.c b/CORE/HDD/src/wlan_hdd_main.c
+index 6917c01..e96e16e 100755
+--- a/CORE/HDD/src/wlan_hdd_main.c
++++ b/CORE/HDD/src/wlan_hdd_main.c
+@@ -713,6 +713,13 @@ static int hdd_netdev_notifier_call(struct notifier_block * nb,
+ 
+    switch (state) {
+    case NETDEV_REGISTER:
++/* pset add patch */
++        pAdapter->connSmeState = CONN_SME_IDLE;
++#ifdef CONN_SME_DEBUG
++        printk( "%s:%d connSmeState <= CONN_SME_IDLE\n",
++                __func__, __LINE__ );
++#endif /* CONN_SME_DEBUG */
++/* pset add patch */
+         break;
+ 
+    case NETDEV_UNREGISTER:
+@@ -9899,7 +9906,7 @@ VOS_STATUS hdd_start_all_adapters( hdd_context_t *pHddCtx )
+                pAdapter->sessionCtx.station.hdd_ReassocScenario = VOS_FALSE;
+ 
+                /* indicate disconnected event to nl80211 */
+-               cfg80211_disconnected(pAdapter->dev, WLAN_REASON_UNSPECIFIED,
++               wlan_hdd_cfg80211_disconnected(pAdapter->dev, WLAN_REASON_UNSPECIFIED,
+                                      NULL, 0, GFP_KERNEL);
+             }
+             else if (eConnectionState_Connecting == connState)
+@@ -9908,7 +9915,7 @@ VOS_STATUS hdd_start_all_adapters( hdd_context_t *pHddCtx )
+                * Indicate connect failure to supplicant if we were in the
+                * process of connecting
+                */
+-               cfg80211_connect_result(pAdapter->dev, NULL,
++               wlan_hdd_cfg80211_connect_result(pAdapter->dev, NULL,
+                                        NULL, 0, NULL, 0,
+                                        WLAN_STATUS_ASSOC_DENIED_UNSPEC,
+                                        GFP_KERNEL);
+@@ -11480,6 +11487,7 @@ static VOS_STATUS wlan_hdd_reg_init(hdd_context_t *hdd_ctx)
+       return status;
+    }
+ 
++#ifdef CONFIG_PM
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,11,0)) || defined(WITH_BACKPORTS)
+     wiphy->wowlan = &wowlan_support_reg_init;
+ #else
+@@ -11497,6 +11505,8 @@ static VOS_STATUS wlan_hdd_reg_init(hdd_context_t *hdd_ctx)
+     wiphy->wowlan.pattern_min_len = WOW_MIN_PATTERN_SIZE;
+     wiphy->wowlan.pattern_max_len = WOW_MAX_PATTERN_SIZE;
+ #endif
++#endif /* CONFIG_PM */
++
+ 
+    /* registration of wiphy dev with cfg80211 */
+    if (0 > wlan_hdd_cfg80211_register(wiphy))
