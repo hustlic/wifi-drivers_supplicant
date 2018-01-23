@@ -1,0 +1,47 @@
+ifndef CC
+CC=gcc
+endif
+
+ifndef AR
+AR=ar
+endif
+
+include ../wpa_supplicant/.config
+
+CFLAGS += -I../src
+CFLAGS += -I../src/drivers
+CFLAGS += -I../src/common
+CFLAGS += -I../src/l2_packet
+CFLAGS += -I../src/utils
+CFLAGS += -I../src/wps
+CFLAGS += -I../wapi
+CFLAGS += -I../wpa_supplicant
+CFLAGS += -DBCM_LINUX_BUILD -DANDROID -DHOSTAPD
+CFLAGS += $(CROSSTOOL_INCLUDE)
+
+ifdef CONFIG_P2P
+CFLAGS += -DCONFIG_P2P
+endif
+
+ifdef CROSS_FC19
+CFLAGS += -I/tools/linux/local/cross/rhel5-64/fc19/include/libnl-3.2.23/include -I/tools/linux/local/cross/rhel5-64/fc19/include/openssl-1.0.1e/include
+endif
+
+LIB_HOSTAPD = lib_driver_cmd_bcmdhd_hostapd.a
+ifdef CONFIG_DRIVER_NL80211
+   OBJ_HOSTAPD += driver_cmd_nl80211.o
+   SRC_HOSTAPD += driver_cmd_nl80211.c
+endif
+ifdef CONFIG_DRIVER_WEXT
+   OBJ_HOSTAPD += driver_cmd_wext.o
+   SRC_HOSTAPD += driver_cmd_wext.c
+endif
+
+all: $(OBJ_HOSTAPD)
+	$(AR) rcs $(LIB_HOSTAPD) $(OBJ_HOSTAPD)
+
+OBJ_HOSTAPD: $(SRC_HOSTAPD)
+	$(CC) $(CFLAGS) -c $(SRC_HOSTAPD)
+
+clean:
+	rm -f *.o $(LIB_HOSTAPD)

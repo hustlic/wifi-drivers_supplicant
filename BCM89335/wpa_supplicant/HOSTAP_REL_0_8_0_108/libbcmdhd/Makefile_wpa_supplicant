@@ -1,0 +1,57 @@
+ifndef CC
+CC=gcc
+endif
+
+ifndef AR
+AR=ar
+endif
+
+include ../wpa_supplicant/.config
+
+CFLAGS += -I../src
+CFLAGS += -I../src/drivers
+CFLAGS += -I../src/common
+CFLAGS += -I../src/l2_packet
+CFLAGS += -I../src/utils
+CFLAGS += -I../src/wps
+CFLAGS += -I../wapi
+CFLAGS += -I../wpa_supplicant
+CFLAGS += -DBCM_LINUX_BUILD -DANDROID -DANDROID_P2P
+CFLAGS += $(CROSSTOOL_INCLUDE)
+ifdef CONFIG_P2P
+CFLAGS += -DCONFIG_P2P
+endif
+
+ifdef CONFIG_BRCM_GENL
+CFLAGS += -DBCM_GENL
+endif
+
+ifdef CONFIG_WAPI
+CFLAGS += -DWAPI
+CFLAGS += -I $(abspath ../src/wapi)
+endif
+
+ifdef CROSS_FC19
+CFLAGS += -I/tools/linux/local/cross/rhel5-64/fc19/include/libnl-3.2.23/include -I/tools/linux/local/cross/rhel5-64/fc19/include/openssl-1.0.1e/include
+endif
+
+LIB_SUPP = lib_driver_cmd_bcmdhd_supplicant.a
+ifdef CONFIG_DRIVER_NL80211
+   OBJ_SUPP += driver_cmd_nl80211.o
+   SRC_SUPP += driver_cmd_nl80211.c
+endif
+
+# WEXT is no longer supported for libbcmdhd
+#ifdef CONFIG_DRIVER_WEXT
+#   OBJ_SUPP += driver_cmd_wext.o
+#   SRC_SUPP += driver_cmd_wext.c
+#endif
+
+all: $(OBJ_SUPP)
+	$(AR) rcs $(LIB_SUPP) $(OBJ_SUPP)
+
+OBJ_SUPP: $(SRC_SUPP)
+	$(CC) $(CFLAGS) -c $(SRC_SUPP)
+
+clean:
+	rm -f *.o $(LIB_SUPP)

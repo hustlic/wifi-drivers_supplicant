@@ -1,0 +1,107 @@
+## bcm94339ipaelna_murata_XQES3.txt
+# Sample NVRAM for BCM94339 WLBGA with eTR,iPA, and eLNA. 
+#NVRAMRev=$Rev: 396102 $
+sromrev=11
+boardrev=0x1101
+boardtype=0x06c9
+boardflags=0x10081401
+boardflags2=0x00002000
+boardflags3=0x08083188 
+macaddr=00:90:4c:c5:12:38
+ccode=0
+regrev=0
+antswitch=0
+pdgain2g=7
+pdgain5g=7
+tworangetssi2g=0
+tworangetssi5g=0
+vendid=0x14e4
+devid=0x43ae
+manfid=0x2d0
+#prodid=0x052e
+nocrc=1
+otpimagesize=502
+xtalfreq=37400
+extpagain2g=2
+pdetrange2g=2
+extpagain5g=2
+pdetrange5g=2
+rxgains2gelnagaina0=2
+rxgains2gtrisoa0=6
+rxgains2gtrelnabypa0=1
+rxgains5gelnagaina0=3
+rxgains5gtrisoa0=6
+rxgains5gtrelnabypa0=1
+rxchain=1
+txchain=1
+aa2g=1
+aa5g=1
+tssipos5g=0
+tssipos2g=0
+#New PA params -- may need to be modified
+pa2ga0=0xFF7E,0x1A11,0xFD10
+pa2gccka0=0xFF8E,0x1A65,0xFD2D
+pa5ga0=0xFF55,0x15D8,0xFD5B,0xFF51,0x1613,0xFD57,0xFF43,0x1641,0xFD48,0xFF55,0x17D3,0xFD34
+pa5gbw40a0=0xFF43,0x15B1,0xFD4B,0xFF3E,0x1555,0xFD59,0xFF4C,0x16E2,0xFD3B,0xFF54,0x1832,0xFD29
+pa5gbw80a0=0xFF4B,0x15FC,0xFD4C,0xFF4F,0x15EF,0xFD57,0xFF65,0x1775,0xFD45,0xFF61,0x1940,0xFD12
+#Max power -- may need to be modified
+maxp2ga0=66
+maxp5ga0=62,62,62,62
+#Power offset per rate -- may need to be modified
+cckbw202gpo=0x0000
+cckbw20ul2gpo=0x0
+mcsbw202gpo=0xCCA88888
+#mcsbw402gpo=0xCCA88888
+dot11agofdmhrbw202gpo=0x8888
+ofdmlrbw202gpo=0x0088
+tssifloor2g=500
+mcsbw205glpo=0x88866666
+mcsbw405glpo=0xAA866666
+mcsbw805glpo=0xAA866666
+mcsbw205gmpo=0x88866666
+mcsbw405gmpo=0xAA866666
+mcsbw805gmpo=0xAA866666
+mcsbw205ghpo=0x88866666
+mcsbw405ghpo=0xAA866666
+mcsbw805ghpo=0xAA866666
+mcslr5glpo=0x0000
+mcslr5gmpo=0x0000
+mcslr5ghpo=0x0000
+sb20in40hrpo=0x0
+sb20in80and160hr5glpo=0x0
+sb40and80hr5glpo=0x0
+sb20in80and160hr5gmpo=0x0
+sb40and80hr5gmpo=0x0
+sb20in80and160hr5ghpo=0x0
+sb40and80hr5ghpo=0x0
+sb20in40lrpo=0x0
+sb20in80and160lr5glpo=0x0
+sb40and80lr5glpo=0x0
+sb20in80and160lr5gmpo=0x0
+sb40and80lr5gmpo=0x0
+sb20in80and160lr5ghpo=0x0
+sb40and80lr5ghpo=0x0
+dot11agduphrpo=0x0
+dot11agduplrpo=0x0
+phycal_tempdelta=25
+cckdigfilttype=1
+# When BT is set to ANT_1 permanently (default)
+swctrlmap_5g=0x08080808,0x14141010,0x10101010,0x000000,0x0ff
+swctrlmap_2g=0x40204020,0x43234121,0x41214020,0xC04341,0x1ff
+swctrlmapext_5g=0x00000000,0x00000000,0x00000000,0x000000,0x000
+swctrlmapext_2g=0x01010101,0x00000000,0x00000000,0x000000,0x001
+#GPIO 0 for SDIO HW OOB interruption
+muxenab=0x10
+#sd_gpout=0
+#sd_gpval=1
+#sd_oobonly=1
+paparambwver=1
+AvVmid_c0=2,155,3,125,3,125,3,125,3,125
+#New rssi params
+rssicorrnorm_c0=-3,-2
+rssicorrnorm5g_c0=-1,0,-1,-2,-1,-1,-3,-1,-1,-1,0,0
+## ED threshold level to address the new ETSI requirement - 10/31/2013
+ed_thresh2g=-77
+ed_thresh5g=-77
+#
+btc_params82=8
