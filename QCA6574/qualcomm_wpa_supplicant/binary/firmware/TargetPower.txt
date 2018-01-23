@@ -1,0 +1,22 @@
+2.4GHz
+	FCC以外:
+	11b 全レート: 15dBm
+	11g 全レート: 13dBm
+	11n HT20 全レート: 12dBm
+	11n HT20 全レート: 11dBm
+
+	FCC:
+	11b 全レート: 15dBm
+	11g 全レート: 13dBm (1chのみ9dBm)
+	11n HT20 全レート: 12dBm (1chのみ8dBm)
+	11n HT40 全レート: 11dBm (3, 4chは7dBm 5chは8dBm)
+
+5GHz
+	11a 全レート 9dBm
+	11n_HT20全レート 8dBm
+	11n_HT40全レート 8dBm
+	11ac_VHT20 MCS0-7 8dBm
+           	   MCS8   7dBm
+	11ac_VHT40 MCS0-7 8dBm
+                   MCS8-9 5dBm
+	11ac_VHT80 全レート 5dBm
